@@ -51,6 +51,18 @@ Those proposing changes should consider that ultimately consent may rest with th
   Replaces: 1
 </pre>
 
+<pre>
+  BIP: 3
+  Title: MARKS Exchange Implementation Proposal
+  Author: Luke Dashjr <luke+bip@dashjr.org>
+  Comments-Summary: Approach to implementatng MARKS on an exchange
+  Comments-URI: https://github.com/bitcoin/bips/wiki/Comments:BIP-0002
+  Status: Active
+  Type: Process
+  Created: 2019-01-27
+  License: OPL
+
+</pre>
 ==Abstract==
 
 A Bitmark Improvement Proposal (BIP) is a design document providing information to the Bitmark community, or describing a new feature for Bitmark or its processes or environment. The BIP should provide a concise technical specification of the feature and a rationale for the feature.
