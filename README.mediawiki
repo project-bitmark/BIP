@@ -30,6 +30,13 @@ Those proposing changes should consider that ultimately consent may rest with th
 | Luke Dashjr
 | Process
 | Active
+|- style="background-color: #cfffcf"
+| [[bip-003.mediawiki|3]]
+|
+| MARKS Exchange Implementation Proposal
+| Victor Alejandro
+| Proposal [DRAFT]
+| Active
 |-
 |}
 
@@ -54,11 +61,11 @@ Those proposing changes should consider that ultimately consent may rest with th
 <pre>
   BIP: 3
   Title: MARKS Exchange Implementation Proposal
-  Author: Luke Dashjr <luke+bip@dashjr.org>
+  Author: Victor Alejandro
   Comments-Summary: Approach to implementatng MARKS on an exchange
-  Comments-URI: https://github.com/bitcoin/bips/wiki/Comments:BIP-0002
+  Comments-URI: https://github.com/bitcoin/bips/wiki/Comments:BIP-003.docx
   Status: Active
-  Type: Process
+  Type: Proposal
   Created: 2019-01-27
   License: OPL
 
