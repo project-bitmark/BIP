@@ -37,6 +37,14 @@ Those proposing changes should consider that ultimately consent may rest with th
 | Victor Alejandro
 | Proposal [DRAFT]
 | Active
+|
+|- style="background-color: #cfffcf"
+| [[bip-004.mediawiki|4]]
+|
+| Documentation for MARKING / LN / Atomic Swaps / Tippin
+| Victor Alejandro
+| Documentation
+| BACKLOG
 |-
 |}
 
