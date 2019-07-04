@@ -37,7 +37,6 @@ Those proposing changes should consider that ultimately consent may rest with th
 | Victor Alejandro
 | Proposal [DRAFT]
 | Active
-|
 |- style="background-color: #cfffcf"
 | [[bip-004.mediawiki|4]]
 |
