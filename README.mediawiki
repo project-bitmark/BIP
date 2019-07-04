@@ -27,7 +27,7 @@ Those proposing changes should consider that ultimately consent may rest with th
 | [[bip-0002.mediawiki|2]]
 |
 | BIP process, revised
-| Luke Dashjr
+| Victor Alejandro
 | Process
 | Active
 |- style="background-color: #cfffcf"
@@ -55,7 +55,7 @@ Those proposing changes should consider that ultimately consent may rest with th
 <pre>
   BIP: 2
   Title: BIP process, revised
-  Author: Luke Dashjr <luke+bip@dashjr.org>
+  Author: Victor Alejandro <devteam@bitmark.io>
   Comments-Summary: No comments yet.
   Comments-URI: https://github.com/bitcoin/bips/wiki/Comments:BIP-0002
   Status: Active
@@ -71,7 +71,7 @@ Those proposing changes should consider that ultimately consent may rest with th
   Title: MARKS Exchange Implementation Proposal
   Author: Victor Alejandro
   Comments-Summary: Approach to implementatng MARKS on an exchange
-  Comments-URI: https://github.com/project-bitmark/BIP/blob/master/bip-003.mediawiki
+  Comments-URI: https://github.com/project-bitmark/BIP/blob/master/bip-003.docx
   Status: Active
   Type: Proposal
   Created: 2019-01-27
@@ -131,12 +131,12 @@ If you are interested in assuming ownership of a BIP, send a message asking to t
 
 ===BIP Editors===
 
-The current BIP editor is Luke Dashjr who can be contacted at [[mailto:luke_bipeditor@dashjr.org|luke_bipeditor@dashjr.org]].
+The current BIP editor is Victor Alejandro who can be contacted at [[mailto:devteam@bitmark.io]].
 
 ===BIP Editor Responsibilities & Workflow===
 
-The BIP editor subscribes to the Bitcmarkdevelopment mailing list.
-Off-list BIP-related correspondence should be sent (or CC'd) to luke_bipeditor@dashjr.org.
+The BIP editor subscribes to the Bitmark Development mailing list.
+Off-list BIP-related correspondence should be sent (or CC'd) to devteam@bitmark.io.
 
 For each new BIP that comes in an editor does the following:
 
