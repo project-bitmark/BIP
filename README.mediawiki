@@ -71,7 +71,7 @@ Those proposing changes should consider that ultimately consent may rest with th
   Title: MARKS Exchange Implementation Proposal
   Author: Victor Alejandro
   Comments-Summary: Approach to implementatng MARKS on an exchange
-  Comments-URI: https://github.com/bitcoin/bips/wiki/Comments:BIP-003.docx
+  Comments-URI: https://github.com/project-bitmark/BIP/blob/master/bip-003.mediawiki
   Status: Active
   Type: Proposal
   Created: 2019-01-27
