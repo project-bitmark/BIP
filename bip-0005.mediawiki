@@ -1,0 +1,7 @@
+BIP: 5
+  Layer: Application
+  Title: Change private key offset 
+  Author: Melvin Carvalho <melvincarvalho@gmail.com>
+  Status: Released
+  Type: Standards Track
+  Created: 2019-07-09
