@@ -5,3 +5,6 @@ BIP: 5
   Status: Released
   Type: Standards Track
   Created: 2019-07-09
+
+
+Electronic coins, such as bitcoin and bitmark use base58 encoded public and private keys.  In order to differentiate different coins for wallet addresses, and for network multiplexing, a prefix is used for both the public key and the private key.
