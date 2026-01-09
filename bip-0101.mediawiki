@@ -1,0 +1,470 @@
+<pre>
+  BIP: 101
+  Title: Multi-Algorithm Proof-of-Work (mPoW)
+  Author: Bitmark Development Team
+  Status: Final
+  Type: Standards Track
+  Created: 2018-06-01
+  Activated: Block 450,947
+  License: MIT
+</pre>
+
+==Abstract==
+
+This document specifies the multi-algorithm proof-of-work (mPoW) hard fork activated at block 450,947. This upgrade introduced eight distinct mining algorithms, Dark Gravity Wave v3 (DGWv3) difficulty adjustment, and merged mining (AuxPow) support for all algorithms.
+
+==Motivation==
+
+The original single-algorithm (Scrypt) design faced several challenges by 2018:
+
+# '''ASIC Centralization''': Scrypt ASICs had become dominant, concentrating mining power
+# '''Hardware Obsolescence''': GPU miners were increasingly excluded
+# '''Security Concerns''': Single-algorithm chains are vulnerable to rental attacks
+# '''Mining Diversity''': Different hardware types (CPU, GPU, ASIC, FPGA) should all participate
+
+Multi-algorithm proof-of-work addresses these issues by:
+
+* Distributing hash power across multiple algorithms
+* Enabling participation by diverse hardware types
+* Increasing attack costs (attacker must control majority of ALL algorithms)
+* Future-proofing against algorithm-specific hardware advances
+
+==Specification==
+
+===Fork Activation===
+
+{| class="wikitable"
+|-
+! Parameter !! Value
+|-
+| Activation Method || Supermajority consensus
+|-
+| Threshold || 75% of last 100 blocks signaling version ≥ 4
+|-
+| First Fork Block || 450,947
+|-
+| Last Pre-Fork Block || 450,946
+|}
+
+The fork activates when <code>IsSuperMajority(4, pindexPrev, 75, 100)</code> returns true.
+
+===Mining Algorithms===
+
+Eight proof-of-work algorithms are supported:
+
+{| class="wikitable"
+|-
+! ID !! Name !! Type !! Weight !! Primary Hardware !! Notes
+|-
+| 0 || SCRYPT || Memory-hard || 8,000 || ASIC/GPU || Original algorithm, Litecoin-compatible
+|-
+| 1 || SHA256D || CPU-bound || 1 || ASIC || Bitcoin-compatible
+|-
+| 2 || YESCRYPT || Memory-hard || 800,000 || CPU/GPU || Password hashing derivative
+|-
+| 3 || ARGON2D || Memory-hard || 4,000,000 || CPU || Password Hashing Competition winner
+|-
+| 4 || X17 || Chained hash || 8,000 || GPU || 17 chained algorithms
+|-
+| 5 || LYRA2REv2 || Memory-hard || 8,000 || GPU || Vertcoin algorithm
+|-
+| 6 || EQUIHASH || Memory-hard || 8,000,000 || GPU/ASIC || Zcash algorithm (N=200, K=9)
+|-
+| 7 || CRYPTONIGHT || Memory-hard || 8,000,000 || CPU/GPU || Monero algorithm family
+|}
+
+====Algorithm Weights====
+
+Weights reflect relative hash market values (as of June 2018) and are used to normalize difficulty across algorithms:
+
+<pre>
+unsigned int GetAlgoWeight(int algo) {
+    switch (algo) {
+        case ALGO_SHA256D:     return 1;
+        case ALGO_SCRYPT:      return 8000;
+        case ALGO_YESCRYPT:    return 800000;
+        case ALGO_ARGON2:      return 4000000;
+        case ALGO_X17:         return 8000;
+        case ALGO_LYRA2REv2:   return 8000;
+        case ALGO_EQUIHASH:    return 8000000;
+        case ALGO_CRYPTONIGHT: return 8000000;
+    }
+}
+</pre>
+
+===Block Version Encoding===
+
+The 32-bit block version field encodes algorithm and protocol information:
+
+<pre>
+Bits 0-7:   Standard version number (minimum 4 for fork)
+Bit 8:      AUXPOW flag (merged mining)
+Bits 9-11:  Algorithm selector (0-7)
+Bit 12:     UPDATE_SSF flag (scaling factor update)
+Bit 13:     VARIANT flag (protocol variant 1)
+Bit 14:     VARIANT2 flag (protocol variant 2)
+Bits 16+:   Chain ID (for AuxPow)
+</pre>
+
+{| class="wikitable"
+|-
+! Constant !! Value !! Purpose
+|-
+| BLOCK_VERSION_AUXPOW || 1 << 8 (0x100) || Indicates AuxPow block
+|-
+| BLOCK_VERSION_ALGO || 7 << 9 (0xE00) || Algorithm mask
+|-
+| BLOCK_VERSION_SCRYPT || 0 << 9 || Scrypt algorithm
+|-
+| BLOCK_VERSION_SHA256D || 1 << 9 || SHA256D algorithm
+|-
+| BLOCK_VERSION_YESCRYPT || 2 << 9 || Yescrypt algorithm
+|-
+| BLOCK_VERSION_ARGON2 || 3 << 9 || Argon2d algorithm
+|-
+| BLOCK_VERSION_X17 || 4 << 9 || X17 algorithm
+|-
+| BLOCK_VERSION_LYRA2REv2 || 5 << 9 || Lyra2REv2 algorithm
+|-
+| BLOCK_VERSION_EQUIHASH || 6 << 9 || Equihash algorithm
+|-
+| BLOCK_VERSION_CRYPTONIGHT || 7 << 9 || CryptoNight algorithm
+|-
+| BLOCK_VERSION_UPDATE_SSF || 1 << 12 || Scaling factor update
+|-
+| BLOCK_VERSION_VARIANT || 1 << 13 || Protocol variant 1
+|-
+| BLOCK_VERSION_VARIANT2 || 1 << 14 || Protocol variant 2
+|-
+| BLOCK_VERSION_CHAIN || 1 << 16 || Chain ID base
+|}
+
+===Block Header Modifications===
+
+====Standard Header (Non-Equihash)====
+
+{| class="wikitable"
+|-
+! Field !! Size !! Description
+|-
+| nVersion || 4 bytes || Block version with algorithm bits
+|-
+| hashPrevBlock || 32 bytes || Previous block hash
+|-
+| hashMerkleRoot || 32 bytes || Merkle root of transactions
+|-
+| nTime || 4 bytes || Block timestamp
+|-
+| nBits || 4 bytes || Difficulty target
+|-
+| nNonce || 4 bytes || Proof-of-work nonce
+|}
+
+Total: 80 bytes (unchanged from Bitcoin)
+
+====Equihash Header====
+
+{| class="wikitable"
+|-
+! Field !! Size !! Description
+|-
+| nVersion || 4 bytes || Block version with algorithm bits
+|-
+| hashPrevBlock || 32 bytes || Previous block hash
+|-
+| hashMerkleRoot || 32 bytes || Merkle root of transactions
+|-
+| hashReserved || 32 bytes || Reserved hash field
+|-
+| nTime || 4 bytes || Block timestamp
+|-
+| nBits || 4 bytes || Difficulty target
+|-
+| nNonce256 || 32 bytes || 256-bit nonce
+|-
+| nSolution || variable || Equihash solution vector
+|}
+
+====Equihash Parameters====
+
+{| class="wikitable"
+|-
+! Parameter !! Value
+|-
+| N || 200
+|-
+| K || 9
+|-
+| Solution Size || 1344 bytes (typically)
+|}
+
+===Dark Gravity Wave v3 (DGWv3)===
+
+Each algorithm maintains independent difficulty, adjusted using a modified DGWv3:
+
+====Parameters====
+
+{| class="wikitable"
+|-
+! Parameter !! Value !! Description
+|-
+| DGW Timespan || 960 seconds || Target time for difficulty window (16 minutes)
+|-
+| Lookback Window || 25 blocks || Number of same-algorithm blocks to consider
+|-
+| Target Per Algorithm || 16 minutes || Expected time between blocks of same algorithm
+|-
+| Combined Target || 2 minutes || Expected time between any blocks
+|}
+
+====Algorithm====
+
+<pre>
+1. Collect last 25 blocks of the same algorithm
+2. Calculate average difficulty of these blocks
+3. Calculate actual timespan between first and last block
+4. Clamp timespan to [target/3, target*3]
+5. Adjust difficulty: new_diff = avg_diff * actual_time / target_time
+6. Apply special rules (Surge Protector, Resurrector)
+</pre>
+
+====Surge Protector====
+
+Prevents algorithm dominance when blocks arrive too quickly:
+
+* '''Trigger''': 9 or more consecutive blocks from the same algorithm
+* '''Action''': Divide difficulty by 3
+* '''Purpose''': Discourage single-algorithm mining bursts
+
+<pre>
+if (lastInRow >= 9 && lastInRow % 9 == 0) {
+    bnNew /= 3;  // Surge Protector activation
+}
+</pre>
+
+====Resurrector====
+
+Restores mining viability for stalled algorithms:
+
+* '''Trigger''': No blocks from algorithm for >160 minutes (9600 seconds)
+* '''Action''': Multiply difficulty adjustment by time_since_last/9600
+* '''Purpose''': Prevent algorithm abandonment
+
+<pre>
+if (time_since_last_algo > 9600) {  // 160 minutes
+    smultiplier = time_since_last_algo / 9600;
+    nActualTimespan = 10 * smultiplier * _nTargetTimespan;
+}
+</pre>
+
+===Merged Mining (AuxPow)===
+
+All eight algorithms support merged mining, allowing simultaneous mining with compatible parent chains.
+
+====AuxPow Structure====
+
+{| class="wikitable"
+|-
+! Field !! Description
+|-
+| coinbaseTx || Parent chain coinbase transaction
+|-
+| hashBlock || Parent block hash
+|-
+| vMerkleBranch || Merkle branch linking coinbase to merkle root
+|-
+| nIndex || Index in merkle tree
+|-
+| vChainMerkleBranch || Chain merkle branch (for multi-chain AuxPow)
+|-
+| nChainIndex || Chain index
+|-
+| parentBlock || Complete parent block header
+|}
+
+====Chain ID====
+
+{| class="wikitable"
+|-
+! Parameter !! Value
+|-
+| Bitmark Chain ID || 0x005B (91 decimal)
+|-
+| Strict Chain ID || true
+|}
+
+====Merge-Mining Marker====
+
+The coinbase transaction must contain:
+<pre>
+0xfa 'b' 'e' 'm' 'm'  (5 bytes: 0xfa62656d6d)
+</pre>
+
+====Algorithm Compatibility====
+
+All algorithms can be merge-mined, but the parent chain must use the same hashing algorithm as the Bitmark block being mined.
+
+{| class="wikitable"
+|-
+! Bitmark Algorithm !! Compatible Parent Chains
+|-
+| SCRYPT || Litecoin, Dogecoin, etc.
+|-
+| SHA256D || Bitcoin, Bitcoin Cash, etc.
+|-
+| LYRA2REv2 || Bitmark (same-chain merge mining)
+|-
+| EQUIHASH || Zcash, etc.
+|-
+| ... || (algorithm-dependent)
+|}
+
+===Subsidy Distribution===
+
+Post-fork, each algorithm contributes 1/8 of the emission:
+
+<pre>
+Per-algorithm subsidy = Base subsidy / 8
+</pre>
+
+Combined with 8 algorithms targeting 16-minute intervals each:
+* Expected blocks per algorithm per day: 90 (1440 min / 16 min)
+* Expected total blocks per day: 720 (90 * 8)
+* Maintains 2-minute average block time
+
+==Implementation==
+
+===Source Code References===
+
+* Algorithm definitions: <code>src/pureheader.h:11-40</code>
+* Algorithm weights: <code>src/core.cpp:692-713</code>
+* DGWv3: <code>src/main.cpp:1423-1614</code>
+* Fork activation: <code>src/core.h:922-925</code>
+* AuxPow validation: <code>src/core.cpp</code>
+
+===Hash Functions===
+
+{| class="wikitable"
+|-
+! Algorithm !! Source File(s)
+|-
+| SCRYPT || scrypt.cpp
+|-
+| SHA256D || hash.cpp
+|-
+| YESCRYPT || yescrypt/*.c
+|-
+| ARGON2D || ar2/*.c
+|-
+| X17 || Multiple sph_*.c files
+|-
+| LYRA2REv2 || Lyra2RE.c, Lyra2.c, Sponge.c, bmw.c
+|-
+| EQUIHASH || equihash.cpp, pow.cpp
+|-
+| CRYPTONIGHT || cryptonight/crypto/*.c
+|}
+
+==Rationale==
+
+===Why Eight Algorithms?===
+
+Eight algorithms provide:
+
+# '''Diversity''': Multiple hardware types can participate
+# '''Security''': 51% attack requires controlling majority of ALL algorithms
+# '''Redundancy''': If one algorithm is compromised, others continue
+# '''Balance''': Power of 2 simplifies subsidy division
+
+===Why These Specific Algorithms?===
+
+Each algorithm serves a purpose:
+
+* '''SCRYPT''': Legacy compatibility, existing ASIC investment
+* '''SHA256D''': Bitcoin compatibility, merge-mining with Bitcoin
+* '''YESCRYPT''': CPU-friendly, accessible mining
+* '''ARGON2D''': State-of-art memory-hard, CPU-optimized
+* '''X17''': GPU-optimized, ASIC-resistant
+* '''LYRA2REv2''': Proven GPU algorithm, Vertcoin compatible
+* '''EQUIHASH''': Memory-hard, used by major coins
+* '''CRYPTONIGHT''': CPU/GPU balance, Monero compatible
+
+===Why DGWv3?===
+
+Dark Gravity Wave offers:
+
+* Per-block adjustment (responsive to hashrate changes)
+* Smooth difficulty transitions
+* Proven in production (Dash, others)
+* Customizable for multi-algorithm use
+
+===Why Surge Protector and Resurrector?===
+
+* '''Surge Protector''': Prevents mining pools from dominating with burst mining
+* '''Resurrector''': Ensures all algorithms remain mineable, prevents permanent abandonment
+
+==Security Considerations==
+
+===51% Attack Resistance===
+
+Multi-algorithm PoW increases attack costs:
+
+* Attacker must control majority hashrate of multiple algorithms
+* Rental attack requires renting from multiple markets
+* Different hardware requirements for each algorithm
+
+===Algorithm-Specific Vulnerabilities===
+
+* Individual algorithm weaknesses don't compromise entire chain
+* Diverse hash functions reduce systemic risk
+* Community can respond to compromised algorithms
+
+===Merge Mining Security===
+
+* Parent chain validation prevents invalid AuxPow claims
+* Chain ID prevents cross-chain replay
+* Merkle proofs ensure coinbase inclusion
+
+==Backward Compatibility==
+
+This is a '''hard fork'''. Nodes running pre-fork software will:
+
+* Reject blocks with version ≥ 4 and algorithm bits set
+* Reject AuxPow blocks
+* Fork off at block 450,947
+
+All nodes must upgrade to version 0.9.7 or later.
+
+==Test Vectors==
+
+===Block Version Examples===
+
+{| class="wikitable"
+|-
+! Description !! nVersion (hex) !! nVersion (decimal)
+|-
+| Scrypt, no AuxPow || 0x00000004 || 4
+|-
+| SHA256D, no AuxPow || 0x00000204 || 516
+|-
+| Scrypt with AuxPow || 0x005B0104 || 5963012
+|-
+| LYRA2REv2 with AuxPow || 0x005B0B04 || 5965572
+|-
+| Equihash with AuxPow || 0x005B0D04 || 5966084
+|}
+
+==See Also==
+
+* [[bip-0100.mediawiki|BIP-100: Bitmark Original Design]]
+* [[bip-0102.mediawiki|BIP-102: Coin Emission Model]]
+
+==References==
+
+* [https://github.com/dashpay/dash/blob/master/src/pow.cpp Dark Gravity Wave Original Implementation]
+* [https://github.com/project-bitmark/bitmark Bitmark Source Code]
+* [https://bitcointalk.org/index.php?topic=660544.0 Bitmark Announcement Thread]
+
+==Copyright==
+
+This document is licensed under the MIT License.
