@@ -1,0 +1,250 @@
+<pre>
+  BIP: 100
+  Title: Bitmark Original Design - Fair Launch and Core Principles
+  Author: Bitmark Development Team
+  Status: Final
+  Type: Informational
+  Created: 2014-07-13
+  License: MIT
+</pre>
+
+==Abstract==
+
+This document describes the original design philosophy and technical parameters of Bitmark as launched on July 13, 2014. Bitmark was designed as a fair-launch cryptocurrency with a focus on accessibility, stability, and balanced stakeholder interests.
+
+==Motivation==
+
+In 2014, the cryptocurrency landscape was dominated by Bitcoin and its early forks. Many new cryptocurrencies launched with premines, instamines, or other mechanisms that concentrated initial supply in the hands of developers or early insiders. Bitmark was conceived as an alternative approach: a cryptocurrency with a genuinely fair launch, designed to balance the interests of all participants—users, miners, investors, and developers.
+
+The genesis block timestamp captures this philosophy:
+
+<blockquote>
+"13/July/2014, with memory of the past, we look to the future. TDR"
+</blockquote>
+
+==Design Principles==
+
+===Fair Distribution===
+
+* '''No Premine''': Zero coins were created before the public launch
+* '''No ICO/Token Sale''': All coins distributed through proof-of-work mining
+* '''Earned Value''': Every aspect of Bitmark focuses on earned, not allocated, value
+* '''Accessible Mining''': Scrypt algorithm chosen for GPU accessibility (ASICs were not yet dominant for Scrypt in 2014)
+
+===Stakeholder Balance===
+
+Bitmark was explicitly designed to balance the interests of:
+
+# '''Users''': Fast confirmation times, low fees, stable operation
+# '''Miners''': Fair reward distribution, accessible mining
+# '''Investors''': Predictable monetary policy, no surprise emissions
+# '''Developers''': Sustainable development funding through community support
+
+This balance was formalized through the concept of '''Investor Public Mining (IPM)''', a governance model ensuring mutual benefit across stakeholder groups.
+
+===Technical Stability===
+
+* '''Conservative Innovation''': Implement proven technologies rather than experimental features
+* '''Reliability''': Prioritize network stability over cutting-edge features
+* '''Longevity''': Design for long-term operation and sustainability
+
+==Technical Specification==
+
+===Genesis Block===
+
+{| class="wikitable"
+|-
+! Parameter !! Value
+|-
+| Timestamp || 1405274442 (July 13, 2014 12:00:42 UTC)
+|-
+| Message || "13/July/2014, with memory of the past, we look to the future. TDR"
+|-
+| Hash || 0xc1fb746e87e89ae75bdec2ef0639a1f6786744639ce3d0ece1dcf979b79137cb
+|-
+| Merkle Root || 0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8
+|-
+| nBits || 0x1d00ffff
+|-
+| nNonce || 14385103
+|-
+| Initial Subsidy || 20 MARKS
+|}
+
+===Network Parameters===
+
+{| class="wikitable"
+|-
+! Parameter !! Mainnet !! Testnet
+|-
+| Default Port || 9265 || 19265
+|-
+| RPC Port || 9266 || 19266
+|-
+| Message Magic || 0xf9beb4d9 || 0x0b110907
+|-
+| Address Prefix || 85 ('b') || 130 ('u')
+|-
+| Proof-of-Work Limit || 2^224 - 1 || 2^248 - 1
+|}
+
+===Proof-of-Work===
+
+{| class="wikitable"
+|-
+! Parameter !! Value !! Rationale
+|-
+| Algorithm || Scrypt || GPU-accessible, ASIC-resistant (in 2014)
+|-
+| N Parameter || 1024 || Standard Litecoin parameters
+|-
+| r Parameter || 1 ||
+|-
+| p Parameter || 1 ||
+|}
+
+===Block Timing===
+
+{| class="wikitable"
+|-
+! Parameter !! Value !! Comparison
+|-
+| Target Block Time || 120 seconds (2 minutes) || Bitcoin: 600 seconds
+|-
+| Difficulty Adjustment || Every 720 blocks || ~24 hours
+|-
+| Retarget Window || 720 blocks ||
+|}
+
+The 2-minute block time was chosen as a balance between:
+* Fast enough for practical transaction confirmation
+* Slow enough to minimize orphan rates and ensure network stability
+* Compatible with existing mining pool infrastructure
+
+===Monetary Policy===
+
+{| class="wikitable"
+|-
+! Parameter !! Value
+|-
+| Maximum Supply || ~27,580,000 MARKS
+|-
+| Initial Block Reward || 20 MARKS
+|-
+| Halving Interval || 788,000 blocks (~3 years)
+|-
+| Interim Quartering || 394,000 blocks (~1.5 years)
+|-
+| Minimum Reward || 0.1 MARKS (after 18 halvings)
+|}
+
+===Reward Schedule (Pre-Fork)===
+
+The original reward schedule combined halving with interim quartering for smoother emission:
+
+{| class="wikitable"
+|-
+! Block Range !! Subsidy (MARKS) !! Note
+|-
+| 0 - 393,999 || 20 || Initial
+|-
+| 394,000 - 787,999 || 15 || First quartering
+|-
+| 788,000 - 1,181,999 || 10 || First halving
+|-
+| 1,182,000 - 1,575,999 || 7.5 || Second quartering
+|-
+| 1,576,000 - 1,969,999 || 5 || Second halving
+|-
+| ... || ... || Continues with halving/quartering pattern
+|}
+
+Formula:
+<pre>
+subsidy = (10 >> halvings) + (10 >> ((height + 394000) / 788000))
+</pre>
+
+==Implementation==
+
+===Source Code References===
+
+* Genesis block parameters: <code>src/chainparams.cpp:62-81</code>
+* Block timing constants: <code>src/main.cpp:1392-1394</code>
+* Reward calculation: <code>src/main.cpp:1213-1233</code>
+* Network parameters: <code>src/chainparams.cpp:41-133</code>
+
+===Key Files===
+
+{| class="wikitable"
+|-
+! File !! Purpose
+|-
+| chainparams.cpp || Network and genesis block parameters
+|-
+| main.cpp || Consensus rules, difficulty adjustment
+|-
+| scrypt.cpp || Proof-of-work hash function
+|-
+| core.h || Block and transaction structures
+|}
+
+==Rationale==
+
+===Why Scrypt?===
+
+In July 2014, Scrypt offered several advantages:
+
+# '''ASIC Resistance''': Scrypt ASICs were just emerging; GPU mining was still viable
+# '''Proven Security''': Litecoin had operated safely with Scrypt since 2011
+# '''Mining Accessibility''': Consumer GPUs could participate effectively
+# '''Pool Infrastructure''': Existing Scrypt mining pools could support Bitmark
+
+===Why 2-Minute Blocks?===
+
+The 2-minute block time represents a careful trade-off:
+
+* '''Faster than Bitcoin (10 min)''': Better user experience for transaction confirmation
+* '''Slower than some altcoins (30-60 sec)''': Reduced orphan rate, better security
+* '''Network Propagation''': Sufficient time for blocks to propagate globally
+* '''Miner Fairness''': Reduces advantage of geographically proximate miners
+
+===Why Halving + Quartering?===
+
+The combined halving/quartering schedule provides:
+
+# '''Smoother Emission Curve''': Avoids dramatic reward cliffs
+# '''Predictability''': Regular, known reduction schedule
+# '''Miner Adaptation''': More time to adjust to reduced rewards
+# '''Economic Stability''': Gradual transition reduces market shock
+
+==Security Considerations==
+
+===51% Attack Resistance===
+
+* Scrypt's memory-hard properties increase attack costs
+* 2-minute blocks provide reasonable confirmation security
+* Network hashrate grew steadily post-launch
+
+===Fair Launch Verification===
+
+* Genesis block publicly announced before mining began
+* No hidden mining period
+* Community-verified launch process
+
+==Backward Compatibility==
+
+This BIP documents the original protocol as launched. These parameters remained in effect until Fork 1 (BIP-101) at block 450,947.
+
+==See Also==
+
+* [[bip-0101.mediawiki|BIP-101: Multi-Algorithm Proof-of-Work]]
+* [[bip-0102.mediawiki|BIP-102: Coin Emission Model]]
+
+==References==
+
+* [https://bitcointalk.org/index.php?topic=660544.0 Original Bitcointalk Announcement]
+* [https://github.com/project-bitmark/bitmark Bitmark Source Code]
+
+==Copyright==
+
+This document is licensed under the MIT License.
