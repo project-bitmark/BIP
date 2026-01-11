@@ -76,11 +76,12 @@ Visual layout:
 | 0x06   | Document      | SHA256(bytes)    | Document proof of existence              |
 | 0x07   | Timestamp     | SHA256(bytes)    | Cross-chain timestamp (OTS compatible)   |
 | 0x08   | Nostr Event   | Raw 32 bytes     | Nostr event id (hex, not nevent)         |
+| 0x09   | URI           | SHA256(UTF-8)    | Linked data identifier (person, place, thing) |
 </pre>
 
 ===Reference Hash Computation===
 
-For types 0x01-0x03 and 0x05, the reference hash is computed as:
+For types 0x01-0x03, 0x05, and 0x09, the reference hash is computed as:
 <pre>
 reference_hash = SHA256(UTF8_ENCODE(reference_string))
 </pre>
