@@ -74,6 +74,7 @@ Visual layout:
 | 0x04   | Nostr      | UTF-8 string     | Nostr identifier (npub, note, nevent)    |
 | 0x05   | Git Commit | UTF-8 string     | Git commit hash or repo URL              |
 | 0x06   | Document   | Raw bytes        | SHA256 of document (proof of existence)  |
+| 0x07   | Timestamp  | Raw bytes        | SHA256 of timestamped content (OTS, etc) |
 </pre>
 
 ===Reference Hash Computation===
@@ -83,10 +84,12 @@ For types 0x01-0x05, the reference hash is computed as:
 reference_hash = SHA256(UTF8_ENCODE(reference_string))
 </pre>
 
-For type 0x06 (Document), the hash is computed directly from file bytes:
+For types 0x06 (Document) and 0x07 (Timestamp), the hash is the SHA256 of the content:
 <pre>
 reference_hash = SHA256(file_bytes)
 </pre>
+
+Type 0x07 enables cross-chain attestation: the same document hash can be timestamped via OpenTimestamps (Bitcoin) and marked on Bitmark, creating dual-chain proof of existence.
 
 This enables proof-of-existence without revealing content.
 
