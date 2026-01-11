@@ -1,0 +1,159 @@
+<pre>
+  BIP: XX
+  Title: MRK On-Chain Marking Protocol
+  Author: Bitmark Development Team
+  Status: Draft
+  Type: Standards Track
+  Created: 2025-01-11
+  License: MIT
+</pre>
+
+==Abstract==
+
+This document specifies MRK, a protocol for timestamping and attributing content references on the Bitmark blockchain using OP_RETURN transactions. Marks provide a permanent, verifiable record linking on-chain transactions to off-chain content, enabling proof-of-existence, creator attribution, and value-bearing endorsements.
+
+==Motivation==
+
+Every day, billions of interactions signal value—likes, shares, upvotes—yet none of it accrues to creators or persists beyond platform lifetimes. These signals exist at the pleasure of intermediaries who harvest attention while the underlying value evaporates.
+
+A mark is different. A mark is a like that costs something and lasts forever.
+
+When you mark content, you commit real value to a permanent record. The transaction fee becomes the weight of your endorsement—not a cost extracted by a platform, but a signal embedded in an immutable ledger. Creators accumulate provable reputation. Curators build track records. The web grows a memory.
+
+MRK provides the minimal primitive needed: a compact, extensible format for anchoring references on-chain. What gets built on top—reputation systems, content discovery, attribution markets—emerges from this foundation.
+
+==Specification==
+
+===Transaction Structure===
+
+A mark transaction is a standard Bitmark transaction with:
+* '''Input(s)''': UTXO(s) controlled by the marker
+* '''Output 0''': OP_RETURN containing mark data (37 bytes)
+* '''Output 1''': Change back to marker (or recipient for Type 2)
+
+===OP_RETURN Format===
+
+<pre>
+OP_RETURN <push_op> <mark_data>
+
+| Field       | Size   | Description           |
+|-------------|--------|-----------------------|
+| OP_RETURN   | 1 byte | 0x6a                  |
+| Push opcode | 1 byte | 0x25 (37 decimal)     |
+| Mark data   | 37 bytes | See below           |
+</pre>
+
+===Mark Data Structure (37 bytes)===
+
+<pre>
+| Offset | Size     | Field          | Description                    |
+|--------|----------|----------------|--------------------------------|
+| 0-2    | 3 bytes  | Magic          | 0x4d524b ("MRK" in ASCII)      |
+| 3      | 1 byte   | Version        | Protocol version (0x01)        |
+| 4      | 1 byte   | Type           | Mark type (see below)          |
+| 5-36   | 32 bytes | Reference Hash | SHA256 of the reference        |
+</pre>
+
+Visual layout:
+<pre>
+4d524b   01   01   <32-byte-sha256-hash>
+│││││    │    │    └── Reference hash
+│││││    │    └─────── Type
+│││││    └──────────── Version
+└────────────────────── Magic ("MRK")
+</pre>
+
+===Mark Types===
+
+<pre>
+| Code   | Name       | Reference Format | Description                              |
+|--------|------------|------------------|------------------------------------------|
+| 0x01   | URL        | UTF-8 string     | Web URL (article, video, post)           |
+| 0x02   | Address    | UTF-8 string     | Bitmark address (creator attribution)    |
+| 0x03   | Content    | UTF-8 string     | Content identifier or hash               |
+| 0x04   | Nostr      | UTF-8 string     | Nostr identifier (npub, note, nevent)    |
+| 0x05   | Git Commit | UTF-8 string     | Git commit hash or repo URL              |
+| 0x06   | Document   | Raw bytes        | SHA256 of document (proof of existence)  |
+</pre>
+
+===Reference Hash Computation===
+
+For types 0x01-0x05, the reference hash is computed as:
+<pre>
+reference_hash = SHA256(UTF8_ENCODE(reference_string))
+</pre>
+
+For type 0x06 (Document), the hash is computed directly from file bytes:
+<pre>
+reference_hash = SHA256(file_bytes)
+</pre>
+
+This enables proof-of-existence without revealing content.
+
+===Mark Weight===
+
+The transaction fee serves as "mark weight"—a measure of commitment to the endorsement. Higher fees indicate stronger signals.
+
+Recommended minimum: 0.01 BTM
+
+==Example==
+
+Marking the URL <code>https://example.com/article</code>:
+
+<pre>
+Reference: "https://example.com/article"
+SHA256:    a1b2c3d4...  (32 bytes)
+
+Mark data (hex):
+4d524b 01 01 a1b2c3d4...
+│      │  │  └── SHA256 of reference
+│      │  └───── Type: 0x01 (URL)
+│      └──────── Version: 0x01
+└─────────────── Magic: "MRK"
+
+Full scriptPubKey:
+6a 25 4d524b0101a1b2c3d4...
+│  │  └── Mark data (37 bytes)
+│  └───── Push opcode (37 = 0x25)
+└──────── OP_RETURN (0x6a)
+</pre>
+
+==Verification==
+
+To verify a mark:
+
+# Parse the OP_RETURN output
+# Verify magic bytes are <code>0x4d524b</code> ("MRK")
+# Check version is supported (0x01)
+# Extract type and reference hash
+# If original reference is known, verify: <code>SHA256(reference) == reference_hash</code>
+
+==Reference Storage==
+
+The blockchain stores only the hash. Original references should be stored off-chain and linked by hash. Implementations may provide:
+* <code>POST /reference</code> - Store reference with its hash
+* <code>GET /reference/:hash</code> - Retrieve reference by hash
+
+==Rationale==
+
+'''Why 37 bytes?''' Compact enough for minimal chain bloat while providing sufficient structure for versioning and type extensibility.
+
+'''Why hash the reference?''' Fixed-size output regardless of reference length. Privacy for document proofs. Efficient on-chain storage.
+
+'''Why fee as weight?''' Sybil resistance without introducing new token mechanics. Aligns incentives—marking costs something, making spam expensive and genuine signals valuable.
+
+==Future Considerations==
+
+* '''Type extensions''': New reference types via new type codes
+* '''Version upgrades''': Breaking changes require version increment
+* '''Multi-mark''': Multiple marks in single transaction
+* '''Recipient marks''': Type 2 (Address) may include recipient output for direct attribution payments
+
+==References==
+
+* Bitcoin OP_RETURN: https://en.bitcoin.it/wiki/OP_RETURN
+* SHA-256: FIPS 180-4
+
+==Copyright==
+
+This document is licensed under the MIT License.
